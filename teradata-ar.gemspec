@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.description   = %q{Teradata ActiveRecord adapter}
   spec.summary       = %q{Teradata ActiveRecord adapter}
   spec.homepage      = "https://github.com/priviterag/teradata-ar"
-  spec.license       = "MIT"
+  spec.license       = "LGPL2"
 
   spec.files         = `git ls-files`.split($/)
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
