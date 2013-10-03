@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["priviterag@gmail.com"]
   spec.description   = %q{Teradata ActiveRecord adapter}
   spec.summary       = %q{Teradata ActiveRecord adapter}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/priviterag/teradata-ar"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
