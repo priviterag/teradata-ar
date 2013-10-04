@@ -1,3 +1,5 @@
+# UNDER DEVELOPMENT!!
+
 # Teradata::Ar
 
 TODO: Write a gem description
