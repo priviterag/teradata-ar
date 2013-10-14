@@ -6,7 +6,7 @@ require 'teradata-cli'
 
 class ActiveRecord::Base
   def self.table_name_prefix
-    $teradata_table_name_prefix
+    Rails.configuration.database_configuration[Rails.env]['table_name_prefix']
   end
 end
 
@@ -42,7 +42,6 @@ module ActiveRecord
         @logon_string = logon_string
         @charset = config[:charset]
         @database = config[:database]
-        $teradata_table_name_prefix = config[:table_name_prefix]
         @config = config
         connect
         super @connection, logger
