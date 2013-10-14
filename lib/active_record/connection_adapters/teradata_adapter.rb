@@ -1,4 +1,5 @@
 require 'active_record/connection_adapters/abstract_adapter'
+require 'arel/visitors/bind_visitor'
 
 #gem 'teradata-cli', :path => '~/projects/teradata-cli'
 require 'teradata-cli'
@@ -26,6 +27,17 @@ module ActiveRecord
   module ConnectionAdapters
     class TeradataAdapter < AbstractAdapter
 
+      class BindSubstitution < Arel::Visitors::ToSql
+        include Arel::Visitors::BindVisitor
+
+        def visit_Arel_Nodes_Limit o
+        end
+
+        def visit_Arel_Nodes_Top o
+          "TOP #{o.expr}"
+        end
+      end
+
       def initialize(logger, logon_string, config)
         @logon_string = logon_string
         @charset = config[:charset]
@@ -34,6 +46,8 @@ module ActiveRecord
         @config = config
         connect
         super @connection, logger
+        @visitor = unprepared_visitor
+        configure_connection
       end
 
       def adapter_name
@@ -44,6 +58,11 @@ module ActiveRecord
         @connection = TeradataCli::Connection.open(@logon_string)
       end
       private :connect
+
+      def configure_connection
+        execute("DATABASE #{@database}") if @database
+      end
+      private :configure_connection
 
       def tables(name = nil)
         sql = "SELECT TABLENAME FROM DBC.TABLES "
@@ -65,6 +84,21 @@ module ActiveRecord
         else
           log(sql, name) { @connection.query(sql) }
         end
+      end
+
+      def exec_query(sql, name = 'SQL', binds = [])
+        result = execute(sql, name)
+        if result && result.count > 0
+          ActiveRecord::Result.new(result.entries[0].keys, result.entries.collect{|r|r.collect{|v|v}})
+        else
+          ActiveRecord::Result.new([],[])
+        end
+      end
+
+      # Returns an array of record hashes with the column names as keys and
+      # column values as values.
+      def select(sql, name = nil, binds = [])
+        exec_query(sql, name)
       end
 
       # Can this adapter determine the primary key for tables not attached
@@ -103,7 +137,7 @@ module ActiveRecord
       end
 
       def extract_field_name(name)
-        name.strip.to_sym
+        name.strip
       end
 
       def extract_default(default)
