@@ -153,6 +153,8 @@ module ActiveRecord
           :date
         when "D"
           :decimal
+        when "TS"
+          :datetime
         else
           raise "Column type #{type} not supported"
         end
