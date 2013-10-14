@@ -67,6 +67,68 @@ module ActiveRecord
         end
       end
 
+      # Can this adapter determine the primary key for tables not attached
+      # to an Active Record class, such as join tables? Backend specific, as
+      # the abstract adapter always returns +false+.
+      def supports_primary_key?
+        true
+      end
+
+      def primary_key(table_name)
+        return :id
+        column = table_structure(table_name).find { |field|
+          field['pk'] == 1
+        }
+        column && column['name']
+      end
+
+      # Returns an array of +Column+ objects for the table specified by +table_name+.
+      def columns(table_name)#:nodoc:
+        sql = "SELECT * FROM DBC.COLUMNS WHERE TABLENAME='#{table_name}'"
+        sql << " AND DATABASENAME='#{@database}'" if @database
+        rs = execute(sql)
+        rs.entries.collect do |record|
+          new_column(
+            extract_field_name(record['ColumnName']),
+            extract_default(record['DefaultValue']),
+            extract_field_type(record['ColumnType']),
+            extract_nullable(record['Nullable'])
+          )
+        end
+      end
+
+      # Overridden by the adapters to instantiate their specific Column type.
+      def new_column(field, default, type, null) # :nodoc:
+        Column.new(field, default, type, null)
+      end
+
+      def extract_field_name(name)
+        name.strip.to_sym
+      end
+
+      def extract_default(default)
+        ''
+      end
+
+      def extract_field_type(type)
+        case type.strip
+        when "I", "I1"
+          :integer
+        when "CV"
+          :string
+        when "DA"
+          :date
+        when "D"
+          :decimal
+        else
+          raise "Column type #{type} not supported"
+        end
+      end
+
+      def extract_nullable(nullable)
+        true
+      end
+
     end
   end
 end
