@@ -64,6 +64,35 @@ module ActiveRecord
       end
       private :configure_connection
 
+      # CONNECTION MANAGEMENT ====================================
+
+      def active?
+        @connection.execute_query('SELECT 1')
+        true
+      rescue Teradata::CLI::Error
+        false
+      end
+
+      def reconnect!
+        super
+        disconnect!
+        connect
+        configure_connection
+      end
+      alias :reset! :reconnect!
+
+      # Disconnects from the database if already connected.
+      # Otherwise, this method does nothing.
+      def disconnect!
+        super
+        unless @connection.nil?
+          @connection.close
+          @connection = nil
+        end
+      end
+
+      # DATABASE STATEMENTS ======================================
+
       def tables(name = nil)
         sql = "SELECT TABLENAME FROM DBC.TABLES "
         clauses = []
