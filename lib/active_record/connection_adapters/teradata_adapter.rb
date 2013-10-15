@@ -42,6 +42,7 @@ module ActiveRecord
         @logon_string = logon_string
         @charset = config[:charset]
         @database = config[:database]
+        @table_name_prefix = config[:table_name_prefix]
         @config = config
         connect
         super @connection, logger
@@ -68,7 +69,7 @@ module ActiveRecord
         clauses = []
         clauses << "DATABASENAME = '#{@database}'" if @database
         clauses << "TABLENAME = '#{name}'" if name
-        clauses << "TABLENAME LIKE '#{$teradata_table_name_prefix}%'" if $teradata_table_name_prefix
+        clauses << "TABLENAME LIKE '#{@table_name_prefix}%'" if @table_name_prefix
         unless clauses.empty?
           sql << " WHERE " + clauses.join(' AND ')
         end
