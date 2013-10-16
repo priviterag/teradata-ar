@@ -167,21 +167,6 @@ module ActiveRecord
         execute_update "ROLLBACK"
       end
 
-      # Can this adapter determine the primary key for tables not attached
-      # to an Active Record class, such as join tables? Backend specific, as
-      # the abstract adapter always returns +false+.
-      def supports_primary_key?
-        true
-      end
-
-      def primary_key(table_name)
-        return :id
-        column = table_structure(table_name).find { |field|
-          field['pk'] == 1
-        }
-        column && column['name']
-      end
-
       # Returns an array of +Column+ objects for the table specified by +table_name+.
       def columns(table_name)#:nodoc:
         sql = "SELECT * FROM DBC.COLUMNS WHERE TABLENAME='#{table_name}'"
