@@ -1,5 +1,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'arel/visitors/bind_visitor'
+require 'teradata/ar/version'
 
 #gem 'teradata-cli', :path => '~/projects/teradata-cli'
 require 'teradata-cli'
@@ -60,6 +61,10 @@ module ActiveRecord
 
       def adapter_name
         'teradata'
+      end
+
+      def version
+        Teradata::Ar::VERSION
       end
 
       def connect
