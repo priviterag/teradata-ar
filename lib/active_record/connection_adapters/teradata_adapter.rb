@@ -126,16 +126,26 @@ module ActiveRecord
       def exec_query(sql, name = 'SQL', binds = [])
         result = execute(sql, name)
         if result && result.count > 0
-          ActiveRecord::Result.new(result.entries[0].keys, result.entries.collect{|r|r.collect{|v|v}})
+          ActiveRecord::Result.new(result.entries[0].keys, result.entries.collect{|r|r.collect{|v|v.rstrip}})
         else
           ActiveRecord::Result.new([],[])
         end
       end
 
-      # Returns an array of record hashes with the column names as keys and
-      # column values as values.
+      # Returns an ActiveRecord::Result instance.
       def select(sql, name = nil, binds = [])
         exec_query(sql, name)
+      end
+
+      # Returns an array of arrays containing the field values.
+      # Order is the same as that returned by +columns+.
+      def select_rows(sql, name = nil)
+        result = execute(sql, name)
+        if result && result.count > 0
+          result.entries.collect{|r|r.collect{|v|v.rstrip}}
+        else
+          []
+        end
       end
 
       # Can this adapter determine the primary key for tables not attached
