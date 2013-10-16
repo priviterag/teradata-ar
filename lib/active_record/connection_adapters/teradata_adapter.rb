@@ -10,6 +10,11 @@ class ActiveRecord::Base
   end
 end
 
+class ActiveRecord::Migration
+  def self.check_pending!
+  end
+end
+
 module ActiveRecord
   module ConnectionHandling
     def teradata_connection(config)
@@ -32,10 +37,13 @@ module ActiveRecord
 
         def visit_Arel_Nodes_Limit o
         end
+        def visit_Arel_Nodes_Offset o
+        end
 
         def visit_Arel_Nodes_Top o
           "TOP #{o.expr}"
         end
+
       end
 
       def initialize(logger, logon_string, config)
@@ -69,7 +77,7 @@ module ActiveRecord
       def active?
         @connection.execute_query('SELECT 1')
         true
-      rescue Teradata::CLI::Error
+      rescue
         false
       end
 
