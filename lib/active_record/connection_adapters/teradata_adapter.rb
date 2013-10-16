@@ -123,10 +123,13 @@ module ActiveRecord
         end
       end
 
+      # Executes +sql+ statement in the context of this connection using
+      # +binds+ as the bind substitutes. +name+ is logged along with
+      # the executed +sql+ statement.
       def exec_query(sql, name = 'SQL', binds = [])
         result = execute(sql, name)
         if result && result.count > 0
-          ActiveRecord::Result.new(result.entries[0].keys, result.entries.collect{|r|r.collect{|v|v.rstrip}})
+          ActiveRecord::Result.new(result.entries[0].keys, result.entries.collect{|r|r.collect{|v|v}})
         else
           ActiveRecord::Result.new([],[])
         end
@@ -142,10 +145,26 @@ module ActiveRecord
       def select_rows(sql, name = nil)
         result = execute(sql, name)
         if result && result.count > 0
-          result.entries.collect{|r|r.collect{|v|v.rstrip}}
+          result.entries.collect{|r|r.collect{|v|v}}
         else
           []
         end
+      end
+
+      def execute_update(sql, name = nil)
+        log(sql, name) { @connection.execute_update(sql) }
+      end
+
+      def begin_db_transaction
+        execute_update "BEGIN TRANSACTION"
+      end
+
+      def commit_db_transaction
+        execute_update "END TRANSACTION"
+      end
+
+      def rollback_db_transaction
+        execute_update "ROLLBACK"
       end
 
       # Can this adapter determine the primary key for tables not attached
@@ -188,7 +207,7 @@ module ActiveRecord
       end
 
       def extract_default(default)
-        ''
+        default
       end
 
       def extract_field_type(type)
@@ -209,7 +228,7 @@ module ActiveRecord
       end
 
       def extract_nullable(nullable)
-        true
+        nullable.strip == "Y"
       end
 
     end
