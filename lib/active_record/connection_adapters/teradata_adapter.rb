@@ -182,6 +182,10 @@ module ActiveRecord
         end
       end
 
+      def primary_key(table_name)
+        columns(table_name).select{|col| col.primary == true}[0].name rescue 'id'
+      end
+
       # Overridden by the adapters to instantiate their specific Column type.
       def new_column(field, default, type, null) # :nodoc:
         Column.new(field, default, type, null)
