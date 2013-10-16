@@ -189,10 +189,10 @@ module ActiveRecord
         rs = execute(sql)
         rs.entries.collect do |record|
           new_column(
-            extract_field_name(record['ColumnName']),
-            extract_default(record['DefaultValue']),
-            extract_field_type(record['ColumnType']),
-            extract_nullable(record['Nullable'])
+            record['ColumnName'].strip,
+            record['DefaultValue'],
+            build_sql_type(record),
+            record['Nullable'].strip == "Y"
           )
         end
       end
@@ -202,33 +202,34 @@ module ActiveRecord
         Column.new(field, default, type, null)
       end
 
-      def extract_field_name(name)
-        name.strip
-      end
-
-      def extract_default(default)
-        default
-      end
-
-      def extract_field_type(type)
-        case type.strip
-        when "I", "I1"
-          :integer
-        when "CV"
-          :string
-        when "DA"
-          :date
-        when "D"
-          :decimal
-        when "TS"
-          :datetime
+      # construct the sql type from the teradata column info
+      def build_sql_type(column)
+        field_type = get_field_type(column['ColumnType'])
+        case field_type
+        when "varchar"
+          "#{field_type}(#{column['ColumnLength']})"
+        when "decimal"
+          "#{field_type}(#{column['DecimalTotalDigits']},#{column['DecimalFractionalDigits']})"
         else
-          raise "Column type #{type} not supported"
+          field_type
         end
       end
 
-      def extract_nullable(nullable)
-        nullable.strip == "Y"
+      def get_field_type(type)
+        case type.strip
+        when "I", "I1"
+          "int"
+        when "CV"
+          "varchar"
+        when "DA"
+          "date"
+        when "D"
+          "decimal"
+        when "TS"
+          "datetime"
+        else
+          raise "Column type #{type} not supported"
+        end
       end
 
     end
