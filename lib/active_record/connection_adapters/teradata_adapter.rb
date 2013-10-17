@@ -45,6 +45,15 @@ module ActiveRecord
           "TOP #{o.expr}"
         end
 
+        def visit_Arel_Nodes_NotEqual o
+          right = o.right
+          if right.nil?
+            "#{visit o.left} IS NOT NULL"
+          else
+            "#{visit o.left} <> #{visit right}"
+          end
+        end
+
       end
 
       def initialize(logger, logon_string, config)
