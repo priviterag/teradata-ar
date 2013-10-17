@@ -235,6 +235,17 @@ module ActiveRecord
         end
       end
 
+      def supports_explain?
+        true
+      end
+
+      def explain(arel, binds = [])
+        sql = "EXPLAIN #{to_sql(arel, binds)}"
+        raw_result  = exec_query(sql)
+        rows = raw_result.map { |hash| hash.values }
+        rows.join("\n")
+      end
+
     end
   end
 end
