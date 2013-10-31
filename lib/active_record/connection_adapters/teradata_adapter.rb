@@ -20,12 +20,8 @@ module ActiveRecord
   module ConnectionHandling
     def teradata_connection(config)
       config = config.symbolize_keys
-      tdpid = config[:tdpid]
-      user = config[:username]
-      pass = config[:password]
-      account = config[:account]
-      # charset = config[:charset]
-      logon_string = TeradataCli::LogonString.new(tdpid, user, pass, account)
+      auth = config.values_at(:tdpid, :username, :password, :account)
+      logon_string = TeradataCli::LogonString.new(*auth)
       ConnectionAdapters::TeradataAdapter.new(logger, logon_string, config)
     end
   end
